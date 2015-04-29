@@ -12,6 +12,8 @@
 #include <pcl/registration/icp.h>
 #include <iostream>
 
+#include <icp/icp.hpp>
+
 using namespace std;
 using namespace cnoid;
 
@@ -147,5 +149,56 @@ boost::optional<double> cnoid::alignPointCloud
     if(icp.hasConverged()){
         return icp.getFitnessScore();
     }
+    return boost::none;
+}
+
+
+boost::optional<double> cnoid::alignPointCloudPointToPoint
+(SgPointSet* target, SgPointSet* source, Affine3& io_T, double maxCorrespondenceDistance, int maxIterations, double maxVariation)
+{
+    typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;    
+
+    if(!target->hasVertices() || !source->hasVertices()){
+        return boost::none;
+    }
+    
+    const SgVertexArray& targetPoints = *target->vertices();
+    PointCloud::Ptr targetCloud(new PointCloud(targetPoints.size(), 1));
+    targetCloud->is_dense = false;
+    for(size_t i=0; i < targetPoints.size(); ++i){
+        const Vector3f& p = targetPoints[i];
+        targetCloud->points[i] = pcl::PointXYZ(p.x(), p.y(), p.z());
+    }
+
+    const SgVertexArray& sourcePoints = *source->vertices();
+    PointCloud::Ptr sourceCloud(new PointCloud(sourcePoints.size(), 1));
+    sourceCloud->is_dense = false;
+    for(size_t i=0; i < sourcePoints.size(); ++i){
+        const Vector3f& p = sourcePoints[i];
+        sourceCloud->points[i] = pcl::PointXYZ(p.x(), p.y(), p.z());
+    }
+
+    icp::IcpParameters param;
+    param.max_iter = maxIterations;
+    Eigen::Matrix<float, 4, 4> f = io_T.matrix().cast <float> ();   // Matrix of floats.
+    param.initial_guess = f;
+    param.max_correspondance_distance = maxCorrespondenceDistance;
+    param.max_iter = maxIterations;
+    param.min_variation = maxVariation;
+
+    icp::IcpPointToPointHubert icp;
+    icp.setParameters(param);
+    icp.setInputCurrent(sourceCloud);
+    icp.setInputReference(targetCloud);
+    
+    icp.run();
+
+    icp::IcpResultsXYZ results = icp.getResults();
+    io_T = results.transformation.cast<Affine3::Scalar>();
+
+    if(results.has_converged) {
+      return results.getFinalError();
+    }
+
     return boost::none;
 }
