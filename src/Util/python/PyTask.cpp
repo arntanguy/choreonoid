@@ -11,6 +11,7 @@
 #include <cnoid/PythonUtil>
 #include <boost/python/raw_function.hpp>
 
+using namespace std;
 using namespace boost::python;
 namespace python = boost::python;
 using namespace cnoid;
@@ -244,7 +245,7 @@ public :
     TaskWrap(const std::string& name, const std::string& caption) : Task(name, caption) {};
     TaskWrap(const Task& org, bool doDeepCopy = true) : Task(org, doDeepCopy) {};
 
-    void onMenuRequest(TaskMenu& menu){
+    virtual void onMenuRequest(TaskMenu& menu){
         bool called = false;
         {
             PyGILock lock;
@@ -262,48 +263,99 @@ public :
         }
     }
 
-    bool storeState(AbstractTaskSequencer* sequencer, Mapping& archive){
-        bool called = false;
-        bool result = false;
+    void default_onMenuRequest(TaskMenu& menu) {
+        return this->Task::onMenuRequest(menu);
+    }
+
+    virtual void onActivated(AbstractTaskSequencer* sequencer){
+        bool isOverridden = false;
+        {
+            PyGILock lock;
+            try {
+                if(python::override func = this->get_override("onActivated")){
+                    isOverridden = true;
+                    func(boost::ref(sequencer));
+                }
+            } catch(python::error_already_set const& ex) {
+                cnoid::handlePythonException();
+            }
+        }
+        if(!isOverridden){
+            Task::onActivated(sequencer);
+        }
+    }
+
+    void default_onActivated(AbstractTaskSequencer* sequencer){
+        return this->Task::onActivated(sequencer);
+    }
+
+    virtual void onDeactivated(AbstractTaskSequencer* sequencer){
+        bool isOverridden = false;
+        {
+            PyGILock lock;
+            try {
+                if(python::override func = this->get_override("onDeactivated")){
+                    isOverridden = true;
+                    func(boost::ref(sequencer));
+                }
+            } catch(python::error_already_set const& ex) {
+                cnoid::handlePythonException();
+            }
+        }
+        if(!isOverridden){
+            Task::onDeactivated(sequencer);
+        }
+    }
+
+    void default_onDeactivated(AbstractTaskSequencer* sequencer){
+        return this->Task::onDeactivated(sequencer);
+    }
+
+    virtual void storeState(AbstractTaskSequencer* sequencer, Mapping& archive){
+        bool isOverridden = false;
         {
             PyGILock lock;
             try {
                 if(python::override storeStateFunc = this->get_override("storeState")){
-                    called = true;
+                    isOverridden = true;
                     MappingPtr a = &archive;
-                    result = storeStateFunc(boost::ref(sequencer), a);
+                    storeStateFunc(boost::ref(sequencer), a);
                 }
             } catch(python::error_already_set const& ex) {
                 cnoid::handlePythonException();
             }
         }
-        if(!called){
-            result = Task::storeState(sequencer, archive);
+        if(!isOverridden){
+            Task::storeState(sequencer, archive);
         }
-        return result;
     }
 
-    bool restoreState(AbstractTaskSequencer* sequencer, const Mapping& archive){
-        bool called = false;
-        bool result = false;
+    void default_storeState(AbstractTaskSequencer* sequencer, Mapping& archive){
+        return this->Task::storeState(sequencer, archive);
+    }
+
+    virtual void restoreState(AbstractTaskSequencer* sequencer, const Mapping& archive){
+        bool isOverridden = false;
         {
             PyGILock lock;
             try {
                 if(python::override restoreState = this->get_override("restoreState")){
-                    called = true;
+                    isOverridden = true;
                     MappingPtr a = const_cast<Mapping*>(&archive);
-                    result = restoreState(boost::ref(sequencer), a);
+                    restoreState(boost::ref(sequencer), a);
                 }
             } catch(python::error_already_set const& ex) {
                 cnoid::handlePythonException();
             }
         }
-        if(!called){
-            result = Task::restoreState(sequencer, archive);
+        if(!isOverridden){
+            Task::restoreState(sequencer, archive);
         }
-        return result;
     }
-    
+
+    void default_restoreState(AbstractTaskSequencer* sequencer, const Mapping& archive){
+        return this->Task::restoreState(sequencer, archive);
+    }
 };
 
 typedef ref_ptr<TaskWrap> TaskWrapPtr;
@@ -451,7 +503,11 @@ void exportPyTaskTypes()
         .def("lastCommand", Task_lastCommand)
         .def("lastCommandIndex", &Task::lastCommandIndex)
         .def("funcToSetCommandLink", &Task::funcToSetCommandLink)
-        .def("onMenuRequest", &Task::onMenuRequest)
+        .def("onMenuRequest", &Task::onMenuRequest, &TaskWrap::default_onMenuRequest)
+        .def("onActivated", &Task::onActivated, &TaskWrap::default_onActivated)
+        .def("onDeactivated", &Task::onDeactivated, &TaskWrap::default_onDeactivated)
+        .def("storeState", &Task::storeState, &TaskWrap::default_storeState)
+        .def("restoreState", &Task::restoreState, &TaskWrap::default_restoreState)
         ;
     
     implicitly_convertible<TaskWrapPtr, ReferencedPtr>();
