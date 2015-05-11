@@ -21,12 +21,23 @@ public:
     MultiPointSetItem(const MultiPointSetItem& org);
     virtual ~MultiPointSetItem();
 
+    void setRenderingMode(int mode);
+    int renderingMode() const;
+    
     void setPointSize(double size);
     double pointSize() const;
 
     double voxelSize() const;
     void setVoxelSize(double size);
 
+    int numPointSetItems() const;
+    PointSetItem* pointSetItem(int index);
+
+    void selectSinglePointSetItem(int index);
+
+    SignalProxy<void(int index)> sigPointSetItemAdded();
+    SignalProxy<void(int index)> sigPointSetUpdated();
+    
     virtual SgNode* getScene();
     
     virtual bool store(Archive& archive);

@@ -20,12 +20,10 @@ add_definitions(${PCL_DEFINITIONS})
 set(sources
   PCLPlugin.cpp
   PointCloudUtil.cpp
-  MultiPointSetItem.cpp
   )
 
 set(headers
   PointCloudUtil.h
-  MultiPointSetItem.h
   exportdecl.h
 )
 
