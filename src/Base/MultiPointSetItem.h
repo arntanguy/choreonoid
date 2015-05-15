@@ -32,12 +32,33 @@ public:
 
     int numPointSetItems() const;
     PointSetItem* pointSetItem(int index);
+    const PointSetItem* pointSetItem(int index) const;
+
+    int numActivePointSetItems() const;
+    PointSetItem* activePointSetItem(int index);
 
     void selectSinglePointSetItem(int index);
 
     SignalProxy<void(int index)> sigPointSetItemAdded();
     SignalProxy<void(int index)> sigPointSetUpdated();
+
+    const Affine3& topOffsetTransform() const;
+    void setTopOffsetTransform(const Affine3& T);
+    SignalProxy<void(const Affine3& T)> sigTopOffsetTransformChanged();
+    void notifyTopOffsetTransformChange();
+
+    Affine3 offsetTransform(int index) const;
+    SgPointSetPtr getTransformedPointSet(int index) const;
     
+    int numAttentionPoints() const;
+    Vector3 attentionPoint(int index) const;
+    void clearAttentionPoints();
+    void addAttentionPoint(const Vector3& p);
+    SignalProxy<void()> sigAttentionPointsChanged();
+    void notifyAttentionPointChange();
+
+    SignalProxy<void(const RectRegionMarker::Region& region)> sigActivePointSetRegionRemoved();
+
     virtual SgNode* getScene();
     
     virtual bool store(Archive& archive);

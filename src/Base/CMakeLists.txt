@@ -80,14 +80,15 @@ set(sources
   LazyCaller.cpp
   LazySignal.cpp
   Licenses.cpp
+  GLSceneRenderer.cpp
   SceneWidget.cpp
-  SceneBar.cpp
   SceneWidgetEditable.cpp
   SceneProjector.cpp
   SceneDragProjector.cpp
   SceneDragger.cpp
-  GLSceneRenderer.cpp
+  RectRegionMarker.cpp
   SceneView.cpp
+  SceneBar.cpp
   SceneItem.cpp
   PointSetItem.cpp
   MultiPointSetItem.cpp
@@ -173,6 +174,7 @@ set(headers
   SceneDragger.h
   SceneBar.h
   SceneWidgetEditable.h
+  RectRegionMarker.h
   GLSceneRenderer.h
   SceneView.h
   SceneItem.h
