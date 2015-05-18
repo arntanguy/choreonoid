@@ -188,6 +188,7 @@ icp::IcpResults cnoid::alignPointCloudPointToPoint
   param.max_correspondance_distance = maxCorrespondenceDistance;
   param.max_iter = maxIterations;
   param.min_variation = maxVariation;
+  param.mestimator = true;
 
   icp::IcpPointToPointHubert icp;
   icp.setParameters(param);
@@ -237,6 +238,7 @@ icp::IcpResults cnoid::alignPointCloudPointToPointSim3
   param.max_correspondance_distance = maxCorrespondenceDistance;
   param.max_iter = maxIterations;
   param.min_variation = maxVariation;
+  param.mestimator = true;
 
   icp::IcpPointToPointHubertSim3 icp;
   icp.setParameters(param);
@@ -293,6 +295,7 @@ icp::IcpResults cnoid::alignPointCloudPointToPlane
   param.max_correspondance_distance = maxCorrespondenceDistance;
   param.max_iter = maxIterations;
   param.min_variation = maxVariation;
+  param.mestimator = true;
 
   icp::IcpPointToPlaneHubert icp;
   icp.setParameters(param);
